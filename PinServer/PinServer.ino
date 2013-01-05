@@ -87,7 +87,7 @@ void setup() {
   Serial.println(Ethernet.localIP());
 
   // register bonjour service
-  EthernetBonjour.begin("arduino");
+  EthernetBonjour.begin("fuerte-arduino");
   EthernetBonjour.addServiceRecord("Arduino Bonjour Pin Webserver._http",
                                    80, MDNSServiceTCP);
 }
