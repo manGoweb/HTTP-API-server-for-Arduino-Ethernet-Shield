@@ -5,6 +5,6 @@ ARDUINO_PORT = /dev/ttyACM0
 
 TARGET       = PinServer
 
-ARDUINO_LIBS = Ethernet Ethernet/utility SPI
+ARDUINO_LIBS = Ethernet Ethernet/utility SPI EthernetBonjour EthernetBonjour/utility
 
 include /usr/share/arduino/Arduino.mk

@@ -15,6 +15,12 @@
  * Ethernet shield attached to pins 10, 11, 12, 13
  * Set of output pins connected - as defined in the pins[] array
 
+ To have the sketch advertise itself using Bonjour, clone
+	git://github.com/neophob/EthernetBonjour.git
+ in your ~/sketchbook/libraries/ directory. Alternatively, simply
+ remove all EthernetBonjour references in this file and all the rest
+ should still work.
+
  loosely based on Web Server example by David A. Mellis and Tom Ioge
  created 5 Jan 2013
  by Petr Baudis
@@ -24,6 +30,7 @@
 
 #include <SPI.h>
 #include <Ethernet.h>
+#include <EthernetBonjour.h>
 
 // A set of output pins to be controlled by the web server
 // We list all pins except those occupied by the Ethernet shield
@@ -78,6 +85,11 @@ void setup() {
   server.begin();
   Serial.print("server is at ");
   Serial.println(Ethernet.localIP());
+
+  // register bonjour service
+  EthernetBonjour.begin("arduino");
+  EthernetBonjour.addServiceRecord("Arduino Bonjour Pin Webserver._http",
+                                   80, MDNSServiceTCP);
 }
 
 // Read HTTP request and send the appropriate reply
@@ -242,7 +254,9 @@ bad_request:
 }
 
 void loop() {
+  // following routines must be called periodically
   Ethernet.maintain();
+  EthernetBonjour.run();
 
   // perform blinking
   int blinkphase = (millis() / blinklength) % 2;
