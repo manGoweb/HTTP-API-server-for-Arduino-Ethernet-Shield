@@ -8,8 +8,8 @@
 
  / - returns JSON object with the current pin values
  /set?pin2=1;pin9=0 - sets pin 2 to HIGH, pin 9 to LOW
-
- TODO: blink support
+ /set?pin2=1;pin9=0;pin53=2 - sets pin 2 to HIGH, pin 9 to LOW
+                              and pin 53 to blinking mode
 
  Circuit:
  * Ethernet shield attached to pins 10, 11, 12, 13
@@ -52,6 +52,11 @@ EthernetServer server(80);
 
 // Timeout during HTTP communication; this default is extremely aggressive
 unsigned long timeout = 15000; /* [ms] */
+
+// Blink interval
+unsigned long blinklength = 1000; /* [ms] */
+// Current blink state
+bool blinkstate = false;
 
 void setup() {
   // Set mode of all pins[] to output
@@ -216,7 +221,8 @@ bad_request:
       Serial.print(pinnum, DEC);
       Serial.print(" <- ");
       Serial.println(new_state, DEC);
-      digitalWrite(pinnum, new_state);
+      if (new_state < 2)
+	digitalWrite(pinnum, new_state);
       pin_states[pin_i] = new_state;
     }
 
@@ -237,6 +243,19 @@ bad_request:
 
 void loop() {
   Ethernet.maintain();
+
+  // perform blinking
+  int blinkphase = (millis() / blinklength) % 2;
+  if (blinkphase != blinkstate) {
+    // we should change blink state
+    blinkstate = blinkphase;
+    Serial.print("changing blink state to ");
+    Serial.println(blinkstate, DEC);
+    for (int i = 0; i < pins_n; i++) {
+      if (pin_states[i] == 2)
+	digitalWrite(pins[i], blinkstate);
+    }
+  }
 
   // listen for incoming clients
   EthernetClient client = server.available();
