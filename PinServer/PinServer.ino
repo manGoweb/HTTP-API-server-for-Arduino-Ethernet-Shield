@@ -50,6 +50,10 @@ int pins[] = { 2, 3, 4, 5, 6, 7, 8, 9,
 // Status of pins; by default, all pins are set to 0
 int pin_states[pins_n] = { 0 };
 
+// Stop time of "flip state" for pins
+unsigned long last_flip = 0;
+unsigned long pin_ms_to_flip[pins_n] = { 0 };
+
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network:
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
@@ -191,7 +195,10 @@ bad_request:
       client.print("\"pin");
       client.print(pins[i], DEC);
       client.print("\":");
-      client.print(pin_states[i], DEC);
+      if (pin_ms_to_flip[i] > 0)
+	client.print(!pin_states[i], DEC);
+      else
+	client.print(pin_states[i], DEC);
       if (i < pins_n - 1)
 	client.print(",");
     }
@@ -237,14 +244,12 @@ bad_request:
       Serial.println(new_state, DEC);
       if (new_state < 2)
 	digitalWrite(pinnum, new_state);
-      if (new_state < 50) {
+      if (new_state <= 2) {
 	pin_states[pin_i] = new_state;
       } else {
-	int state = pin_states[pin_i];
-	if (state > 1) state = 1;
-	digitalWrite(pinnum, !state);
-	delay(new_state);
-	digitalWrite(pinnum, state);
+	// flip pin and set timer
+	digitalWrite(pinnum, !pin_states[pin_i]);
+	pin_ms_to_flip[pin_i] = new_state;
       }
     }
 
@@ -276,8 +281,34 @@ void loop() {
     Serial.print("changing blink state to ");
     Serial.println(blinkstate, DEC);
     for (int i = 0; i < pins_n; i++) {
-      if (pin_states[i] == 2)
+      if (pin_states[i] == 2 && !pin_ms_to_flip[i])
 	digitalWrite(pins[i], blinkstate);
+    }
+  }
+
+  // decrease flip timers
+  // an alternative approach would be to hold "unflip time" instead of
+  // decreasing timers each millisecond, but that may be slightly tricky
+  // in conjunction with (unsigned long) millis() overflows.
+  if (millis() != last_flip) {
+    unsigned long new_time = millis();
+    long delta = new_time - last_flip;
+    last_flip = new_time;
+    for (int i = 0; i < pins_n; i++) {
+      if (!pin_ms_to_flip[i])
+	continue;
+      /* Deduce delta (which may be >1 if we got stuck when communicating
+	 with the client), guarding against underflows. */
+      if (pin_ms_to_flip[i] < delta)
+	pin_ms_to_flip[i] = 0;
+      else
+	pin_ms_to_flip[i] -= delta;
+      if (!pin_ms_to_flip[i]) {
+	// unflip pin
+	int state = pin_states[i];
+	if (state > 1) state = 1;
+	digitalWrite(pins[i], state);
+      }
     }
   }
 
