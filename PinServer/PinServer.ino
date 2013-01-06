@@ -10,6 +10,8 @@
  /set?pin2=1;pin9=0 - sets pin 2 to HIGH, pin 9 to LOW
  /set?pin2=1;pin9=0;pin53=2 - sets pin 2 to HIGH, pin 9 to LOW
                               and pin 53 to blinking mode
+ /set?pin3=100 - switches pin 3 to opposite level for 100ms
+                 (requests are not processed during that time)
 
  Circuit:
  * Ethernet shield attached to pins 10, 11, 12, 13
@@ -235,7 +237,15 @@ bad_request:
       Serial.println(new_state, DEC);
       if (new_state < 2)
 	digitalWrite(pinnum, new_state);
-      pin_states[pin_i] = new_state;
+      if (new_state < 50) {
+	pin_states[pin_i] = new_state;
+      } else {
+	int state = pin_states[pin_i];
+	if (state > 1) state = 1;
+	digitalWrite(pinnum, !state);
+	delay(new_state);
+	digitalWrite(pinnum, state);
+      }
     }
 
     client.println("HTTP/1.1 200 OK");

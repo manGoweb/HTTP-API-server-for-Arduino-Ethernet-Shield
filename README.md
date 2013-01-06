@@ -12,6 +12,8 @@ Web Server
  /set?pin2=1;pin9=0 - sets pin 2 to HIGH, pin 9 to LOW
  /set?pin2=1;pin9=0;pin53=2 - sets pin 2 to HIGH, pin 9 to LOW
                               and pin 53 to blinking mode
+ /set?pin3=100 - switches pin 3 to opposite level for 100ms
+                 (requests are not processed during that time)
 
  Circuit:
  * Ethernet shield attached to pins 10, 11, 12, 13
