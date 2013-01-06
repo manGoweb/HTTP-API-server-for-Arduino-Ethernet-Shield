@@ -212,9 +212,9 @@ bad_request:
       if (qstringval[0] != '=')
 	goto bad_request;
       qstringval++;
-      if (!isdigit(qstringval[0]) || (qstringval[1] != ';' && qstringval[1] != 0))
+      if (!isdigit(qstringval[0]))
 	goto bad_request;
-      int new_state = qstringval[0] - '0';
+      int new_state = atoi(qstringval);
 
       // Now, pinnum is pin number and new_state is new pin state
       // Check if pinnum is in set (index will be in pin_i)
