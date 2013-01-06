@@ -21,7 +21,7 @@ Web Server
  To have the sketch advertise itself using Bonjour, clone
 	git://github.com/neophob/EthernetBonjour.git
  in your ~/sketchbook/libraries/ directory. Alternatively, simply
- remove all EthernetBonjour references in this file and all the rest
+ remove all EthernetBonjour references in the sketch and all the rest
  should still work.
 
  loosely based on Web Server example by David A. Mellis and Tom Ioge
